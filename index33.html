@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>שאלון בריף – טופס רב־שלבי</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+:root{
+  --primary:#7c497b;   /* צבע ראשי */
+  --bg:#0f0f11;
+  --text:#ffffff;
+  --muted:#9ea0a4;
+  --line:#3a3a3a;
+  --line-focus:var(--primary);
+  --danger:#ff7b7b;
+  --btn:var(--primary);
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+
+body{
+  margin:0; color:var(--text);
+  font-family:"Rubik", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  background:#0f0f11; /* בסיס אחיד */
+  min-height:100vh;
+  overflow-x:hidden;
+  position:relative;
+}
+
+/* Glow חזק, תחום לגובה מסך אחד */
+body::after{
+  content:"";
+  position:fixed;
+  top:0; left:0; width:100%; height:100vh;
+  pointer-events:none; z-index:-1;
+  background:
+    radial-gradient(1000px 500px at 95% -10%, rgba(124,73,123,0.45), transparent 60%),
+    radial-gradient(1000px 500px at 12% 108%, rgba(124,73,123,0.35), transparent 36%);
+    
+}
+
+/* שכבת נקודות */
+body::before{
+  content:"";
+  position:fixed; inset:0;
+  pointer-events:none; z-index:-2;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.08) 0, rgba(255,255,255,0.08) 1px, transparent 1px),
+    radial-gradient(1px 1px at 60% 70%, rgba(255,255,255,0.08) 0, rgba(255,255,255,0.08) 1px, transparent 1px);
+  background-size:120px 120px;
+  opacity:.25;
+}
+
+.wrap{max-width:920px; margin:0 auto; padding:24px;}
+.card {
+  background: rgba(255, 255, 255, 0.15);          /* שקיפות יותר חזקה */
+  border: 1px solid rgba(255, 255, 255, 0.25);    /* גבול יותר ברור */
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.6),               /* צל חזק */
+    inset 0 1px 2px rgba(255, 255, 255, 0.25);    /* הדגשת שוליים פנימית */
+  backdrop-filter: blur(22px) saturate(180%);     /* טשטוש חזק יותר */
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+}
+
+/* Header / progress */
+.header{display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:10px; flex-wrap:wrap}
+.title{font-weight:700; font-size:22px; flex:1}
+.progress{display:flex; align-items:center; gap:10px; width:320px; max-width:100%}
+.progress b{min-width:58px; text-align:center; font-weight:600; color:var(--muted)}
+.bar{position:relative; height:7px; flex:1; background:rgba(255,255,255,0.15); border-radius:999px; overflow:hidden}
+.bar > span{position:absolute; inset:0 100% 0 0; background:var(--primary); transition:all .35s ease;}
+
+/* Steps */
+.step{display:none; animation:fade .25s ease}
+.step.active{display:block}
+@keyframes fade{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none}}
+
+/* Fields */
+.group{display:grid; grid-template-columns:1fr; gap:22px; margin-top:22px}
+.field{display:flex; flex-direction:column; gap:10px}
+label{font-size:15px; color:#e6e6e6}
+label .req{color:var(--danger)}
+input[type="text"], input[type="email"], input[type="tel"], textarea, select{
+  appearance:none; background:rgba(255,255,255,0.05); color:var(--text);
+  border:none; outline:none; border-bottom:1.6px solid var(--line);
+  padding:12px 10px; font-size:18px; border-radius:12px;
+  backdrop-filter:blur(6px);
+}
+input::placeholder, textarea::placeholder{color:#bbb}
+textarea{min-height:110px; resize:vertical}
+input:focus, textarea:focus, select:focus{border-bottom-color:var(--primary); background:rgba(255,255,255,0.08)}
+
+.inline{display:flex; gap:14px; flex-wrap:wrap}
+.inline .field{flex:1; min-width:140px}
+
+/* Phone row */
+.phone-row{display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap}
+.phone-row select{width:140px; padding-right:36px}
+.flag{position:relative}
+.flag::before{content:"🇮🇱"; position:absolute; left:10px; bottom:16px; font-size:18px}
+.help{font-size:13px; color:var(--muted)}
+
+/* Repeaters */
+.repeater{display:flex; flex-direction:column; gap:14px}
+.rep-item{
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:14px; padding:14px;
+  background:rgba(255,255,255,0.04);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.rep-actions{display:flex; gap:8px; margin-top:10px; flex-wrap:wrap}
+
+/* Errors */
+.error{font-size:13px; color:var(--danger); display:none}
+.invalid input, .invalid textarea, .invalid select{border-bottom-color:var(--danger)!important}
+.invalid .error{display:block}
+
+/* Buttons */
+.footer{display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:28px; flex-wrap:wrap}
+.btn{border:none; cursor:pointer; padding:12px 18px; border-radius:12px; font-weight:700; font-size:16px; transition:all .25s ease}
+.btn-primary{
+  background:var(--primary);
+  color:#fff;
+  box-shadow:0 6px 18px rgba(124,73,123,.55), 0 0 0 1px rgba(255,255,255,.08) inset;
+}
+.btn-primary:hover{
+  transform:translateY(-1px);
+  box-shadow:0 8px 22px rgba(124,73,123,.65), 0 0 0 1px rgba(255,255,255,.1) inset;
+}
+.btn-ghost{background:rgba(255,255,255,0.06); color:var(--text); border:1px solid rgba(255,255,255,0.2)}
+.btn-ghost:hover{background:rgba(255,255,255,0.12)}
+
+.muted{color:var(--muted)}
+
+/* Thanks */
+.thanks{text-align:center; padding:60px 20px}
+.pill{display:inline-block; background:rgba(255,255,255,0.08); color:#d8d8d8; padding:6px 12px; border-radius:999px; font-size:13px; backdrop-filter:blur(8px)}
+
+/* Mobile */
+@media (max-width:640px){
+  .wrap{padding:12px}
+  .card{padding:18px}
+  .title{font-size:18px}
+  input, textarea, select{font-size:16px}
+  .btn{width:100%; text-align:center}
+  .footer{flex-direction:column-reverse}
+  .progress{width:100%}
+}
+
+/* וידאו/אמבד בעיצוב זכוכית + רספונסיבי */
+.video-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 720px;   /* אפשר לשנות לפי הצורך */
+  aspect-ratio: 16/9; /* יחס מסך סטנדרטי */
+  margin: 20px auto;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+}
+
+.video-wrap iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+.video-wrap .overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;           /* שלא יפריע ללחיצה על הפליי */
+  border-radius: 18px;
+}
+
+#loader{
+  position:fixed; inset:0; z-index:99999;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--bg);
+  transition: opacity .6s ease, visibility .6s ease;
+}
+#loader.hide{ opacity:0; visibility:hidden; pointer-events:none; }
+
+.loader-box{
+  text-align:center;
+}
+
+.powered{
+  font-size:12px;
+  color:var(--muted);
+  margin-bottom:6px;
+  letter-spacing:.5px;
+}
+
+.logo{
+  height:40px;   /* לשחק עם הגובה */
+  width:auto;
+  margin:0 auto 14px;
+  display:block;
+  opacity:.95;
+}
+
+/* שכבת לואדר מרכזית */
+#loader {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.85); /* רקע כהה-שקוף כמו Typeform */
+  backdrop-filter: blur(2px);   /* אפקט טשטוש עדין (אופציונלי) */
+  transition: opacity .6s ease, visibility .6s ease;
+}
+
+#loader.hide {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.loader-box {
+  text-align: center;
+}
+
+.powered {
+  font-size: 12px;
+  color: #aaa;
+  margin-bottom: 6px;
+  letter-spacing: .5px;
+}
+
+.logo {
+  height: 40px;
+  width: auto;
+  display: block;
+  margin: 0 auto 14px;
+  opacity: .95;
+}
+
+/* === בר הטעינה עם האנימציה שלך === */
+.loader {
+  height: 4px;
+  width: 130px;
+  margin: 0 auto;
+
+  /* שני גרדיאנטים "רצים" + שכבת בסיס בהירה */
+  --c:no-repeat linear-gradient(var(--brand, #6100ee) 0 0);
+  background: var(--c), var(--c), #d7b8fc;
+  background-size: 60% 100%;
+  background-repeat: no-repeat, no-repeat, no-repeat;
+  animation: l16 3s infinite;
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset;
+}
+
+@keyframes l16 {
+  0%   { background-position:-150% 0, -150% 0, 0 0 }
+  66%  { background-position: 250% 0, -150% 0, 0 0 }
+  100% { background-position: 250% 0,  250% 0, 0 0 }
+}
+
+/* תיקון ספציפי למובייל (iOS/טלפונים) */
+@media (max-width: 640px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  textarea,
+  select {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    background-color: rgba(255,255,255,0.05) !important;
+    color: var(--text) !important;
+    border: none;
+    border-bottom: 1.6px solid var(--line);
+    border-radius: 12px;
+    box-shadow: none !important;
+    background-clip: padding-box !important;
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus {
+    background-color: rgba(255,255,255,0.08) !important;
+    border-bottom-color: var(--primary);
+    outline: none;
+    box-shadow: none !important;
+  }
+
+  /* ביטול מילוי אוטומטי (צהוב/לבן) */
+  input:-webkit-autofill,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill {
+    -webkit-text-fill-color: var(--text) !important;
+    box-shadow: 0 0 0 1000px rgba(255,255,255,0.05) inset !important;
+    transition: background-color 9999s ease-out 0s;
+    caret-color: var(--text) !important;
+  }
+
+  /* מניעת blur שגורם לרקע לבן באייפון */
+  input, textarea, select {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+
+/*תיקון שדה לבן של כתובות URL במצב אייפון*/
+/* תיקון למובייל – למנוע הלבנה של בלוק ה-Repeaters */
+@media (max-width: 640px) {
+  .rep-item {
+    /* רקע כהה עדין במקום blur */
+    background: rgba(255,255,255,0.06) !important;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+
+    /* ביטול הטשטוש שיוצר לובן באייפון */
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+
+    /* מונע "זליגת" צביעה/צללים פנימה */
+    isolation: isolate;
+    box-shadow: 0 2px 10px rgba(0,0,0,.35);
+  }
+
+  /* שדות בתוך ה-repeater נשארים באפור-שקוף כמו בשאר הטופס */
+  .rep-item .field input,
+  .rep-item .field textarea,
+  .rep-item .field select {
+    background-color: rgba(255,255,255,0.05) !important;
+    box-shadow: none !important;
+  }
+}
+
+/* אופציונלי: אם עדיין לבן – אפשר להחליש גם את ה-blur של ה-.card במובייל */
+@media (max-width: 640px) {
+  .card {
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    backdrop-filter: blur(12px) saturate(160%);
+  }
+}
+
+/*תיקון הקארד כשגוללים למטה והוא נטען מחדש*/
+/* 1) לתקן יחידות גובה במובייל ולמנוע bounce לגלילה-על */
+@media (max-width:640px) and (hover:none) and (pointer:coarse) {
+  html, body {
+    height: auto !important;       /* לא ננעל לגובה viewport */
+    min-height: 100dvh !important; /* גובה דינמי אמיתי */
+    overscroll-behavior-y: none;   /* אין chain/bounce כלפי מעלה */
+  }
+
+  /* 2) שכבות הרקע הקבועות: לא להשתמש ב-100vh */
+  body::before,
+  body::after {
+    position: fixed !important;
+    inset: 0 !important;           /* במקום height:100vh */
+  }
+}
+
+/* אופציונלי: אם עדיין מרגיש "קופץ", פשוט הסתר את שכבות הרקע במובייל */
+@media (max-width:640px) and (hover:none) and (pointer:coarse) {
+  body::before,
+  body::after { display: none !important; }
+}
+
+
+/*הוספת פונטים מתאימים גם לשדות שבתוך הטקסט אינפוט*/
+/* תן שם לפונט פעם אחת */
+:root{
+  --app-font: "Rubik", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+}
+body{ font-family: var(--app-font); }
+
+/* טפסים יורשים את הפונט והגדלים */
+input, textarea, select, button {
+  font: inherit !important;          /* כולל family, size, weight, line-height */
+  color: var(--text);
+  letter-spacing: inherit;
+  text-rendering: optimizeLegibility;
+}
+
+/* placeholder גם עם אותו פונט */
+input::placeholder,
+textarea::placeholder {
+  font: inherit;
+  color: #bbb;
+  opacity: 1;
+}
+
+/* אוטופיל ב-WebKit (iOS/Chrome) לפעמים מחליף פונט – נכריח ירושה */
+input:-webkit-autofill,
+textarea:-webkit-autofill,
+select:-webkit-autofill{
+  -webkit-text-fill-color: var(--text);
+  font: inherit !important;
+}
+
+/* iOS לא "מנפח"/מקטין טקסט */
+html { -webkit-text-size-adjust: 100%; }
+
+  </style>
+</head>
+<body>
+    <!-- LOADER -->
+<div id="loader">
+  <div class="loader-box">
+    <div class="powered">Powered by</div>
+    <!-- החלף לנתיב הלוגו שלך או השאר טקסט -->
+    <img class="logo" src="png/Logo.png" alt="Your Brand Logo">
+    <div class="loader"></div>
+  </div>
+</div>
+  <div class="wrap">
+    <div class="card" id="app">
+      <div class="header">
+        <div class="title">שאלון בריף – נכיר את המותג והיעדים</div>
+        <div class="progress">
+          <b id="counter">1 / 6</b>
+          <div class="bar" aria-hidden="true"><span id="bar"></span></div>
+        </div>
+      </div>
+
+      <!-- Step 0: Intro -->
+<section class="step active" data-step="0">
+  <p class="muted">
+    השאלון לוקח כ-8–12 דקות. בכל שלב תמלא/י מעט שדות ותוכל/י לנווט קדימה/אחורה.
+    הנתונים נשמרים מקומית כדי שלא תאבד/י התקדמות.
+  </p>
+
+  <div class="video-wrap">
+    <iframe
+      src="https://www.youtube.com/embed/lpEeYwrkBPU?rel=0&controls=1&modestbranding=1"
+      title="Intro video"
+      frameborder="0"
+      loading="lazy"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      allowfullscreen>
+    </iframe>
+  </div>
+
+  <div class="footer">
+    <span></span>
+    <button class="btn btn-primary" type="button" data-next>התחל/י</button>
+  </div>
+</section>
+
+
+      <!-- Step 1: פרטים אישיים -->
+      <section class="step" data-step="1">
+        <h3>פרטים אישיים <span class="muted">* חובה</span></h3>
+        <div class="group">
+          <div class="inline">
+            <div class="field" data-req>
+              <label>שם פרטי <span class="req">*</span></label>
+              <input type="text" name="first_name" placeholder="ישראלה" />
+              <div class="error">נא למלא את זה</div>
+            </div>
+            <div class="field" data-req>
+              <label>שם משפחה <span class="req">*</span></label>
+              <input type="text" name="last_name" placeholder="ישראלי" />
+              <div class="error">נא למלא את זה</div>
+            </div>
+          </div>
+
+        <div class="field" data-req>
+        <label>מספר טלפון <span class="req">*</span></label>
+        <input 
+            type="tel" 
+            name="phone" 
+            placeholder="050-234-5678" 
+            inputmode="tel" 
+            pattern="^0\d{1,2}-?\d{7}$" 
+        />
+        <div class="error">נא למלא טלפון תקין</div>
+        <div class="help">דוגמה: 050-234-5678</div>
+        </div>
+
+          <div class="field" data-req>
+            <label>אימייל</label>
+            <input type="email" name="email" placeholder="name@example.com" />
+            <div class="error">נא למלא אימייל תקין</div>
+          </div>
+        </div>
+        <div class="footer">
+          <button class="btn btn-ghost" data-prev>חזרה</button>
+          <button class="btn btn-primary" data-next>המשך</button>
+        </div>
+      </section>
+
+      <!-- Step 2: הווה – העסק והשוק (מצומצם לדוגמה) -->
+      <section class="step" data-step="2">
+        <h3>הווה: העסק והשוק</h3>
+        <div class="group">
+          <div class="field" data-req>
+            <label>רקע על המותג <span class="req">*</span></label>
+            <textarea name="brand_background" placeholder="מתי נפתח, מה הוא בא לפתור..."></textarea>
+            <div class="error">נא למלא את זה</div>
+          </div>
+
+          <!-- <div class="inline"> -->
+            <div class="field" data-req>
+              <label>SWOT – עוצמות <span class="req">*</span></label>
+              <textarea name="swot_strengths" placeholder="מה אנחנו עושים טוב?" ></textarea>
+              <div class="error">נא למלא את זה</div>
+            </div>
+            <div class="field" data-req>
+              <label>SWOT – חולשות <span class="req">*</span></label>
+              <textarea name="swot_weaknesses" placeholder="היכן הפערים?" ></textarea>
+              <div class="error">נא למלא את זה</div>
+            </div>
+          <!-- </div> -->
+
+          <!-- <div class="inline"> -->
+            <div class="field" data-req>
+              <label>SWOT – הזדמנויות <span class="req">*</span></label>
+              <textarea name="swot_opportunities" placeholder="מגמות/נישות לצמיחה" ></textarea>
+              <div class="error">נא למלא את זה</div>
+            </div>
+            <div class="field" data-req>
+              <label>SWOT – סיכונים <span class="req">*</span></label>
+              <textarea name="swot_threats" placeholder="מתחרים, רגולציה וכו'" ></textarea>
+              <div class="error">נא למלא את זה</div>
+            </div>
+          <!-- </div> -->
+
+          <div class="field">
+            <label>השוק והמתחרים (רשימה)</label>
+            <div class="repeater" id="rep-competitors"></div>
+            <div class="rep-actions">
+              <button type="button" class="btn btn-ghost" id="add-competitor">+ הוסף מתחרה</button>
+            </div>
+          </div>
+        </div>
+        <div class="footer">
+          <button class="btn btn-ghost" data-prev>חזרה</button>
+          <button class="btn btn-primary" data-next>המשך</button>
+        </div>
+      </section>
+
+      <!-- Step 3: מטרות ועתיד (מקוצר) -->
+      <section class="step" data-step="3">
+        <h3>מטרות ועתיד</h3>
+        <div class="group">
+          <!-- <div class="inline"> -->
+            <div class="field" data-req>
+              <label>Having – מה השגנו <span class="req">*</span></label>
+              <textarea name="vision_having" placeholder="נכסים, הצלחות..."></textarea>
+              <div class="error">נא למלא את זה</div>
+            </div>
+            <div class="field" data-req>
+              <label>Being – מה אנחנו מרגישים <span class="req">*</span></label>
+              <textarea name="vision_being" placeholder="תחושות..."></textarea>
+              <div class="error">נא למלא את זה</div>
+            </div>
+          <!-- </div> -->
+          <div class="field" data-req>
+            <label>Doing – מה אנחנו עושים <span class="req">*</span></label>
+            <textarea name="vision_doing" placeholder="פעילויות..."></textarea>
+            <div class="error">נא למלא את זה</div>
+          </div>
+          <div class="field" data-req>
+            <label>המטרה השיווקית <span class="req">*</span></label>
+            <textarea name="marketing_goal"></textarea>
+            <div class="error">נא למלא את זה</div>
+          </div>
+        </div>
+        <div class="footer">
+          <button class="btn btn-ghost" data-prev>חזרה</button>
+          <button class="btn btn-primary" data-next>המשך</button>
+        </div>
+      </section>
+
+      <!-- Step 4: תקשורת (מקוצר) -->
+      <section class="step" data-step="4">
+        <h3>תקשורת</h3>
+        <div class="group">
+          <div class="field" data-req>
+            <label>מסר עיקרי – במשפט אחד <span class="req">*</span></label>
+            <textarea name="main_message"></textarea>
+            <div class="error">נא למלא את זה</div>
+          </div>
+          <div class="field">
+            <label>רפרנסים (קישורים) – אופציונלי</label>
+            <div class="repeater" id="rep-refs"></div>
+            <div class="rep-actions">
+              <button type="button" class="btn btn-ghost" id="add-ref">+ הוסף רפרנס</button>
+            </div>
+          </div>
+        </div>
+        <div class="footer">
+          <button class="btn btn-ghost" data-prev>חזרה</button>
+          <button class="btn btn-primary" data-next>המשך</button>
+        </div>
+      </section>
+
+      <!-- Step 5: אישור ושליחה -->
+      <section class="step" data-step="5">
+        <h3>אישור ושליחה</h3>
+        <p class="muted">בדקו שהכול נכון. לאחר שליחה יוצג מסך תודה.</p>
+        <div class="group">
+          <div class="field" data-req>
+            <label>
+              <input type="checkbox" name="consent" style="accent-color:var(--btn); width:18px; height:18px; vertical-align:middle" />
+              אני מאשר/ת שהמידע שמסרתי נכון
+            </label>
+            <div class="error">חובה לאשר</div>
+          </div>
+        </div>
+        <div class="footer">
+          <button class="btn btn-ghost" data-prev>חזרה</button>
+          <button class="btn btn-primary" id="submitBtn">שליחה</button>
+        </div>
+      </section>
+
+      <!-- תודה -->
+      <section class="step" data-step="6">
+        <div class="thanks">
+          <div class="pill">התקבל</div>
+          <h2>תודה! קיבלנו את השאלון.</h2>
+          <p class="muted">נחזור אליך לאחר עיבוד הנתונים. אפשר לסגור את העמוד בבטחה.</p>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script>
+    // —— Util ——
+    const $ = (s, el=document) => el.querySelector(s);
+    const $$ = (s, el=document) => Array.from(el.querySelectorAll(s));
+  const WEBHOOK_URL = 'https://n8n.scale4u.com/webhook-test/Details';
+
+    const steps = $$('.step');
+    let idx = 0;
+    const totalSteps = 6; // כולל 0..5 (תודה היא 6)
+
+    const counterEl = $('#counter');
+    const barEl = $('#bar');
+
+    function updateUI(){
+      steps.forEach((st,i)=>st.classList.toggle('active', i===idx));
+      const displayIdx = Math.min(idx, totalSteps-1); // לא לספור את מסך תודה
+      counterEl.textContent = `${Math.min(displayIdx+1, totalSteps)} / ${totalSteps}`;
+      const p = (displayIdx)/(totalSteps-1); // 0..1
+      barEl.style.insetInlineEnd = `${100 - Math.round(p*100)}%`;
+      localStorage.setItem('brief_form_step', idx);
+    }
+
+    function next(){
+      if(!validateStep(idx)) return;
+      idx = Math.min(idx+1, steps.length-1);
+      updateUI();
+    }
+    function prev(){ idx = Math.max(idx-1, 0); updateUI(); }
+
+    // —— Validation ——
+    function validateStep(i){
+      const step = steps[i];
+      if(!step) return true;
+      let ok = true;
+      // required fields containers have [data-req]
+      $$('[data-req]', step).forEach(box=>{
+        const inputs = $$('input, textarea, select', box);
+        let localOk = true;
+        inputs.forEach(inp=>{
+          const name = inp.getAttribute('name');
+          const type = inp.type;
+          let v = (type==='checkbox') ? inp.checked : (inp.value||'').trim();
+
+          if(type==='email' && v){
+            const re=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if(!re.test(v)) localOk=false;
+          } else if (inp.name==='phone' && v){
+            const re=/^0\d{1,2}-?\d{7}$/;
+            if(!re.test(v)) localOk=false;
+          } else if (type==='checkbox'){
+            if(!inp.checked) localOk=false;
+          } else {
+            if(!v) localOk=false;
+          }
+        });
+        box.classList.toggle('invalid', !localOk);
+        if(!localOk) ok=false;
+      });
+
+      if(ok) saveStep(i);
+      return ok;
+    }
+
+    // —— Data ——
+    function saveStep(i){
+      const step = steps[i];
+      const data = JSON.parse(localStorage.getItem('brief_form_data')||'{}');
+      $$('input, textarea, select', step).forEach(inp=>{
+        const key = inp.name; if(!key) return;
+        data[key] = (inp.type==='checkbox') ? inp.checked : inp.value;
+      });
+      localStorage.setItem('brief_form_data', JSON.stringify(data));
+    }
+
+    function collectAll(){
+      const data = JSON.parse(localStorage.getItem('brief_form_data')||'{}');
+      // collect repeater arrays
+      data.competitors = $$('#rep-competitors .rep-item').map(el=>({
+        name: $('input[name="c_name"]', el)?.value?.trim()||'',
+        url: $('input[name="c_url"]', el)?.value?.trim()||'',
+        note: $('input[name="c_note"]', el)?.value?.trim()||''
+      })).filter(x=>x.name||x.url||x.note);
+
+      data.references = $$('#rep-refs .rep-item').map(el=>({
+        url: $('input[name="r_url"]', el)?.value?.trim()||'',
+        why: $('input[name="r_why"]', el)?.value?.trim()||''
+      })).filter(x=>x.url||x.why);
+
+      return data;
+    }
+
+    // —— Repeaters ——
+    function addCompetitorRow(pref={}){
+      const host = $('#rep-competitors');
+      const div = document.createElement('div');
+      div.className='rep-item';
+      div.innerHTML=`
+        <div class="inline">
+          <div class="field"><label>שם</label><input type="text" name="c_name" value="${pref.name||''}"></div>
+          <div class="field"><label>קישור</label><input type="text" name="c_url" placeholder="https://" value="${pref.url||''}"></div>
+        </div>
+        <div class="field"><label>הערה</label><input type="text" name="c_note" value="${pref.note||''}"></div>
+        <div class="rep-actions"><button type="button" class="btn btn-ghost btn-sm">מחק</button></div>
+      `;
+      $('button', div).addEventListener('click', ()=> div.remove());
+      host.appendChild(div);
+    }
+    function addRefRow(pref={}){
+      const host = $('#rep-refs');
+      const div = document.createElement('div');
+      div.className='rep-item';
+      div.innerHTML=`
+        <div class="inline">
+          <div class="field"><label>קישור</label><input type="text" name="r_url" placeholder="https://" value="${pref.url||''}"></div>
+          <div class="field"><label>למה אהבנו</label><input type="text" name="r_why" value="${pref.why||''}"></div>
+        </div>
+        <div class="rep-actions"><button type="button" class="btn btn-ghost btn-sm">מחק</button></div>
+      `;
+      $('button', div).addEventListener('click', ()=> div.remove());
+      host.appendChild(div);
+    }
+
+    // —— Submit ——
+// —— Submit ——
+async function submitForm(){
+  if(!validateStep(idx)) return;
+
+  const submitBtn = document.getElementById('submitBtn');
+  const originalText = submitBtn.textContent;
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'שולח...';
+
+  // איסוף כל המידע מהשלבים/רפיטרים
+  const payload = collectAll();
+
+  // מעט מטה־דאטה שימושית בצד n8n
+  const envelope = {
+    submissionId: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
+    submittedAt: new Date().toISOString(),
+    stepCount: steps.length - 1,      // בלי מסך תודה
+    userAgent: navigator.userAgent,
+    url: location.href,
+    data: payload
+  };
+
+  try {
+    const res = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(envelope)
+    });
+
+    if (!res.ok) {
+      // אם n8n החזיר שגיאה – נציג הודעה ונאפשר לנסות שוב
+      console.error('n8n error status:', res.status);
+      alert('השליחה נכשלה (שרת החזיר ' + res.status + '). נסה/י שוב בעוד רגע.');
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalText;
+      return;
+    }
+
+    // הצלחה → מעבר למסך תודה
+    idx = 6;
+    updateUI();
+    // ניקוי טיוטה (רשות)
+    // localStorage.removeItem('brief_form_data');
+
+  } catch (err) {
+    console.error('send failed:', err);
+    alert('לא הצלחתי לשלוח כעת (בעיה בחיבור). נסה/י שוב.');
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
+  }
+}
+
+    // —— Events wiring ——
+    $$('#app [data-next]').forEach(b=> b.addEventListener('click', next));
+    $$('#app [data-prev]').forEach(b=> b.addEventListener('click', prev));
+    $('#submitBtn').addEventListener('click', submitForm);
+
+    $('#add-competitor').addEventListener('click', ()=> addCompetitorRow());
+    $('#add-ref').addEventListener('click', ()=> addRefRow());
+
+    // Load from storage
+    (function init(){
+      // resume step
+      const savedStep = parseInt(localStorage.getItem('brief_form_step')||'0',10);
+      if(!Number.isNaN(savedStep)) idx = Math.min(savedStep, 5);
+
+      // restore values
+      const data = JSON.parse(localStorage.getItem('brief_form_data')||'{}');
+      $$('input, textarea, select').forEach(inp=>{
+        const key = inp.name; if(!key) return;
+        if(data[key]!==undefined){
+          if(inp.type==='checkbox') inp.checked = !!data[key];
+          else inp.value = data[key];
+        }
+      });
+
+      // prepare repeaters from saved arrays (if any)
+      (data.competitors||[]).forEach(addCompetitorRow);
+      (data.references||[]).forEach(addRefRow);
+
+      updateUI();
+    })();
+
+
+  // להציג מיד, להסתיר אחרי 2 שניות
+document.addEventListener('DOMContentLoaded', () => {
+  const loader = document.getElementById('loader');
+  if(!loader) return;
+  setTimeout(() => {
+    loader.classList.add('hide');
+    loader.addEventListener('transitionend', () => loader.remove(), { once:true });
+  }, 2000);
+});
+  </script>
+</body>
+</html>
