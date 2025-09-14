@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-  <style>
+  <!-- <style>
   :root{
     color-scheme: dark;
     --bg:#0f0f11;
@@ -239,7 +239,187 @@
 .rep-row input { width: 100%; }
 @media (max-width: 640px){ .rep-row { grid-template-columns: 1fr; } }
 
-  </style>
+  </style> -->
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#0f0f11;
+  --text:#fff;
+  --muted:#a9abb1;
+  --primary:#7c497b;
+  --danger:#ff7b7b;
+  --line:#383a40;
+  --font:"Rubik",system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
+}
+
+/* בסיס */
+*{box-sizing:border-box}
+html,body{height:100%; min-height:100dvh}
+body{
+  margin:0; font-family:var(--font); color:var(--text);
+  background:
+    radial-gradient(70vw 70vh at 80% -10%, rgba(124,73,123,.28), transparent 60%),
+    radial-gradient(70vw 70vh at 10% 110%, rgba(124,73,123,.18), transparent 36%),
+    var(--bg);
+
+  /* ===== מרכז מסך אמיתי בין Header/Footer ===== */
+  display:grid;
+  grid-template-rows: auto 1fr auto; /* header | content | footer */
+  grid-template-columns: 100%;
+}
+
+/* Header */
+.wrap{max-width:1080px; margin:0 auto; padding:18px; width:100%}
+.head{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 2px 12px}
+.title{font-weight:700}
+.progress{display:flex; align-items:center; gap:10px; width:300px; max-width:50%}
+.bar{position:relative; height:7px; flex:1; background:rgba(255,255,255,.08); border-radius:999px; overflow:hidden}
+.bar>span{position:absolute; inset:0 100% 0 0; background:var(--primary); transition:all .25s ease}
+.count{font-weight:600; color:var(--muted); min-width:60px; text-align:center}
+
+/* ===== זרימת מסכים – ממורכזת בעזרת grid-row:2 ===== */
+.qflow{
+  grid-row: 2;           /* שורת התוכן של ה-Grid */
+  position: relative;
+  height: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* כל מסך שאלה תופס את כל הגובה הזמין ונמצא במרכז */
+.q{
+  min-height: 100%;
+  scroll-snap-align: start;
+  display:flex; align-items:center; justify-content:center;
+  padding: 24px 18px;
+}
+
+/* ——— מסך ראשון – קארד ——— */
+.q.classic .qbox{
+  width:100%; max-width:760px;
+  background: rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:18px;
+  padding:16px 16px 18px;
+  box-shadow: 0 16px 40px rgba(0,0,0,.35), inset 0 1px 2px rgba(255,255,255,.12);
+}
+
+/* ——— סגנון Typeform למסכים 2+ ——— */
+.q.tf .stage{ width: min(900px, 92vw); }
+.q.tf .ask{
+  font-weight:700; line-height:1.35;
+  font-size: clamp(22px, 3.2vw, 36px);
+  text-align:center; margin: 0 0 30px;
+}
+.q.tf .fieldline{
+  display:flex; align-items:center; gap:10px;
+  border-bottom:1px solid #5a5a5a;
+  padding: 10px 4px 14px;
+}
+.q.tf input[type="text"],
+.q.tf input[type="email"],
+.q.tf input[type="tel"],
+.q.tf textarea,
+.q.tf select{
+  appearance:none; border:none; outline:none; background:transparent; color:var(--text);
+  width:100%; font: inherit; font-size: clamp(18px, 2vw, 22px);
+}
+.q.tf input::placeholder,.q.tf textarea::placeholder{color:#bdbdbd}
+.q.tf .ok{
+  flex:none; border:1px solid rgba(255,255,255,.22);
+  background:rgba(255,255,255,.06);
+  color:#fff; font-weight:700;
+  padding:10px 16px; border-radius:10px; cursor:pointer;
+}
+.q.tf .ok:focus{outline:2px solid var(--primary); outline-offset:2px}
+.q.tf .meta{ margin-top:10px; font-size:12px; color:var(--muted); text-align:center; }
+.q.tf .error{ display:none; color:var(--danger); font-size:13px; margin-top:8px; text-align:center; }
+.q.tf.invalid .error{ display:block }
+
+/* קלטים כלליים (למסך הראשון) */
+.label{font-weight:600; margin-bottom:5px}
+.req{color:var(--danger)}
+.hint{margin-top:8px; font-size:12px; color:var(--muted)}
+.field{display:flex; flex-direction:column; gap:8px}
+input,textarea,select,button{font:inherit; color:var(--text)}
+.classic input[type="text"], .classic input[type="email"], .classic input[type="tel"], .classic textarea, .classic select{
+  appearance:none; width:100%;
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--line);
+  border-radius:12px; padding:12px 12px; font-size:18px; outline:none; margin-bottom: 10px;
+}
+.classic input:focus,.classic textarea:focus,.classic select:focus{
+  border-color: var(--primary);
+  background: rgba(255,255,255,.08);
+}
+.classic .error{display:none; color:var(--danger); font-size:13px}
+.classic .invalid .error{display:block}
+
+/* פוטר (נשאר) – הוא בשורה השלישית של ה-Grid */
+.footer{
+  grid-row: 3;
+  position: sticky; bottom:0; inset-inline:0;
+  display:flex; justify-content:space-between; gap:10px;
+  padding:12px 0;
+  background: linear-gradient(180deg, transparent, rgba(0,0,0,.25));
+  max-width:1080px; margin:0 auto; width:100%;
+}
+.btn{border:none; cursor:pointer; padding:12px 16px; border-radius:12px; font-weight:700}
+.btn-primary{ background:var(--primary); color:#fff }
+.btn-ghost{ background:rgba(255,255,255,.08); color:#fff; border:1px solid rgba(255,255,255,.18) }
+
+/* מובייל – מונע "קפיצות" overscroll */
+@media (hover:none) and (pointer:coarse){
+  html,body{ overscroll-behavior-y:none; }
+}
+
+/* לואדר */
+#loader{
+  position: fixed; inset:0; z-index:99999;
+  display:flex; align-items:center; justify-content:center;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(2px);
+  transition: opacity .6s ease, visibility .6s ease;
+}
+#loader.hide{ opacity:0; visibility:hidden; pointer-events:none; }
+.loader-box{text-align:center}
+.powered{font-size:12px; color:#aaa; margin-bottom:6px; letter-spacing:.5px}
+.logo{height:40px; width:auto; display:block; margin:0 auto 14px; opacity:.95}
+.loader{
+  height:4px; width:130px; margin:0 auto;
+  --c:no-repeat linear-gradient(var(--brand,#6100ee) 0 0);
+  background: var(--c), var(--c), #d7b8fc;
+  background-size:60% 100%; background-repeat:no-repeat;
+  animation:l16 3s infinite; border-radius:999px;
+  box-shadow:0 0 0 1px rgba(255,255,255,.08) inset;
+}
+@keyframes l16{
+  0%{background-position:-150% 0,-150% 0,0 0}
+  66%{background-position:250% 0,-150% 0,0 0}
+  100%{background-position:250% 0,250% 0,0 0}
+}
+
+/* וידאו פתיחה */
+.video-wrap{
+  position:relative; width:100%; max-width:720px; aspect-ratio:16/9;
+  margin:20px auto; border-radius:18px; overflow:hidden;
+  box-shadow:0 8px 30px rgba(0,0,0,0.4);
+}
+.video-wrap iframe{ width:100%; height:100%; border:none; display:block; }
+.video-wrap .overlay{ position:absolute; inset:0; pointer-events:none; border-radius:18px; }
+
+/* רפיטרים (מתחרים/רפרנסים) */
+.repeater{ display:grid; gap:10px; }
+.rep-row{ display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:8px; align-items:center; }
+.rep-row input{ width:100%; }
+@media (max-width:640px){
+  .rep-row{ grid-template-columns:1fr; }
+}
+</style>
+
+
 </head>
 <body>
         <!-- LOADER -->
