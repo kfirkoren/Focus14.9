@@ -417,6 +417,18 @@ input,textarea,select,button{font:inherit; color:var(--text)}
 @media (max-width:640px){
   .rep-row{ grid-template-columns:1fr; }
 }
+
+/* Footer centered & raised */
+.footer{
+  justify-content: center;   /* במקום space-between */
+  gap: 40px;                 /* רווח בין הכפתורים */
+  bottom: 24px;              /* מעלה קצת מעל תחתית המסך */
+  background: linear-gradient(180deg, transparent, rgba(0,0,0,.15));
+}
+
+@media (min-width: 900px){
+  .footer{ bottom: 32px; gap: 14px; } /* טיפה יותר גבוה בדסקטופ */
+}
 </style>
 
 
