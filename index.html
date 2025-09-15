@@ -429,6 +429,22 @@ input,textarea,select,button{font:inherit; color:var(--text)}
 @media (min-width: 900px){
   .footer{ bottom: 32px; gap: 14px; } /* טיפה יותר גבוה בדסקטופ */
 }
+
+
+.result-box{
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  max-height: 42vh;
+  overflow: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+
 </style>
 
 
@@ -439,7 +455,7 @@ input,textarea,select,button{font:inherit; color:var(--text)}
         <div class="loader-box">
             <div class="powered">Powered by</div>
             <!-- החלף לנתיב הלוגו שלך או השאר טקסט -->
-            <img class="logo" src="png/Logo.png" alt="Your Brand Logo">
+            <img class="logo" src="png/Logo2.png" alt="Your Brand Logo">
             <div class="loader"></div>
         </div>
         </div>
@@ -678,6 +694,18 @@ input,textarea,select,button{font:inherit; color:var(--text)}
       </div>
     </section>
   </div>
+
+<!-- Q-RESULT: תוצאה מהשרת -->
+<!-- <section class="q tf" id="result-screen">
+  <div class="stage">
+    <h2 class="ask">התקבל ✔</h2>
+    <pre class="result-box" id="resultText" dir="ltr"></pre>
+    <div class="fieldline" style="border:none; padding:0; justify-content:center;">
+      <button class="ok" type="button" id="resultClose">חזרה להתחלה</button>
+    </div>
+    <div class="meta">אפשר להעתיק/להדביק את התגובה במידת הצורך</div>
+  </div>
+</section> -->
 
   <!-- פוטר ניווט כללי -->
   <div class="footer">
@@ -1026,7 +1054,7 @@ function serializeForm(){
 }
 
 async function postToN8N(payload){
-  // const webhookUrl = 'https://n8n.scale4u.com/webhook-test/Details1';
+  //  const webhookUrl = 'https://n8n.scale4u.com/webhook/Details1';
   const webhookUrl = 'https://n8n.srv972112.hstgr.cloud/webhook/f7cb8648-a328-484e-825a-c14fa29acbfa';
 
   const res = await fetch(webhookUrl, {
@@ -1106,6 +1134,21 @@ document.addEventListener('DOMContentLoaded', () => {
     loader.addEventListener('transitionend', () => loader.remove(), { once:true });
   }, 2000);
 });
+
+
+// // ספלאש קצר בהעלאה, לא להסיר מה-DOM – שנוכל לפתוח אותו בזמן שליחה
+// document.addEventListener('DOMContentLoaded', () => {
+//   const loader = document.getElementById('loader');
+//   if (!loader) return;
+//   setTimeout(() => {
+//     loader.classList.add('hide'); // רק מסתיר (opacity/visibility)
+//   }, 1200);
+// });
+
+// // פונקציות עזר
+// function showLoader(){ const el = document.getElementById('loader'); el && el.classList.remove('hide'); }
+// function hideLoader(){ const el = document.getElementById('loader'); el && el.classList.add('hide'); }
+
 </script>
 
 
